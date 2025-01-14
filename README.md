@@ -40,4 +40,4 @@ Conforme a imagem a seguir:
 
 1. **Clone o Repositório**:
    ```bash
-   git clone https://github.com/seu-usuario/seu-repositorio.git
+   git clone https://github.com/paulohique/Rifas-HTML
