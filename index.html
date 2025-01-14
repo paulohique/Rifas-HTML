@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Rifas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5dc; /* Fundo creme */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff; /* Fundo branco */
+            border-radius: 8px; /* Bordas arredondadas */
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px; /* Bordas arredondadas */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-edit {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-clear {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-export {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        h1 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerenciamento de Rifas</h1>
+
+    <div class="button-container">
+        <button id="editButton" class="btn-edit">Editar Linha</button>
+        <button id="clearButton" class="btn-clear">Zerar Linha</button>
+        <button id="exportExcel" class="btn-export">Exportar para Excel</button>
+        <button id="exportPDF" class="btn-export">Exportar para PDF</button>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Número da Rifa</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Situação de Pagamento</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- As linhas serão carregadas dinamicamente do cache local -->
+        </tbody>
+    </table>
+
+    <script>
+        // Inicializa as tabelas no localStorage se não existirem
+        function initializeTables() {
+            if (!localStorage.getItem('tabelas')) {
+                const tabelas = {};
+                for (let i = 1; i <= 100; i++) {
+                    tabelas[`tabela${i}`] = [];
+                }
+                localStorage.setItem('tabelas', JSON.stringify(tabelas));
+            }
+        }
+
+// Carrega os dados da tabela do localStorage e exibe na tabela existente
+function loadTableData() {
+    const tabelas = JSON.parse(localStorage.getItem('tabelas'));
+    const tbody = document.querySelector('#dataTable tbody');
+    tbody.innerHTML = '';
+
+    // Preenchendo a tabela com os dados de 1 a 100
+    for (let i = 0; i < 100; i++) {
+        const row = tabelas[`tabela1`][i] || {}; // Pega os dados da linha i ou um objeto vazio se não houver dados
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td>${i + 1}</td> <!-- Número da linha -->
+            <td>${row.numero_rifa || ''}</td>
+            <td>${row.nome || ''}</td>
+            <td>${row.telefone || ''}</td>
+            <td>${row.situacao_pagamento || ''}</td>
+        `;
+
+        tbody.appendChild(tr);
+    }
+}
+
+// Inicializa a tabela se não existir e carrega os dados
+document.addEventListener('DOMContentLoaded', () => {
+    initializeTables();
+    loadTableData();
+});
+
+
+        // Salva a linha na tabela do localStorage
+        function saveRowToCache(row) {
+            const tabelas = JSON.parse(localStorage.getItem('tabelas'));
+            const numeroRifa = parseInt(row.cells[1].textContent);
+            const nome = row.cells[2].textContent;
+            const telefone = row.cells[3].textContent;
+            const situacaoPagamento = row.cells[4].textContent;
+
+            tabelas[`tabela1`].push({
+                numero_rifa: numeroRifa,
+                nome: nome,
+                telefone: telefone,
+                situacao_pagamento: situacaoPagamento
+            });
+
+            localStorage.setItem('tabelas', JSON.stringify(tabelas));
+        }
+
+        document.getElementById('editButton').addEventListener('click', () => {
+            const rowNumber = prompt("Digite o número da linha que deseja editar:");
+            const table = document.getElementById('dataTable');
+            const row = table.rows[parseInt(rowNumber)] || null;
+
+            if (row && rowNumber > 0) {
+                const numeroRifa = prompt("Digite o novo número da rifa:", row.cells[1].textContent);
+                const nome = prompt("Digite o novo nome:", row.cells[2].textContent);
+                const telefone = prompt("Digite o novo telefone:", row.cells[3].textContent);
+                const situacaoPagamento = prompt("Digite a nova situação de pagamento (Pago/Não):", row.cells[4].textContent);
+
+                row.cells[1].textContent = numeroRifa || row.cells[1].textContent;
+                row.cells[2].textContent = nome || row.cells[2].textContent;
+                row.cells[3].textContent = telefone || row.cells[3].textContent;
+                row.cells[4].textContent = situacaoPagamento || row.cells[4].textContent;
+
+                saveRowToCache(row);
+            } else {
+                alert("Linha inválida!");
+            }
+        });
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            const rowNumber = prompt("Digite o número da linha que deseja zerar:");
+            const table = document.getElementById('dataTable');
+            const row = table.rows[parseInt(rowNumber)] || null;
+
+            if (row && rowNumber > 0) {
+                row.cells[1].textContent = "";
+                row.cells[2].textContent = "";
+                row.cells[3].textContent = "";
+
+                saveRowToCache(row);
+            } else {
+                alert("Linha inválida!");
+            }
+        });
+
+        // Função para exportar a tabela para Excel
+        document.getElementById('exportExcel').addEventListener('click', () => {
+            const table = document.getElementById('dataTable');
+            let tableData = '';
+
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                let rowData = [];
+                for (let j = 0; j < row.cells.length; j++) {
+                    rowData.push(row.cells[j].textContent);
+                }
+                tableData += rowData.join("\t") + "\n";
+            }
+
+            const blob = new Blob([tableData], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.download = 'dados.xls';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        });
+
+        // Função para exportar a tabela para PDF
+        document.getElementById('exportPDF').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const table = document.getElementById('dataTable');
+            const rows = Array.from(table.rows).map(row => {
+                return Array.from(row.cells).map(cell => cell.textContent);
+            });
+
+            const doc = new jsPDF();
+            doc.autoTable({
+                head: [rows[0]],
+                body: rows.slice(1)
+            });
+
+            doc.save('dados.pdf');
+        });
+
+        // Inicializa as tabelas e carrega os dados
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTables();
+            loadTableData();
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
